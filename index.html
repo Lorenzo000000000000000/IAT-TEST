@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test IAT</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f3f3f3;
+            text-align: center;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #4CAF50;
+        }
+        .section {
+            margin-top: 20px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+        }
+        .input-field {
+            margin-top: 10px;
+            padding: 10px;
+            width: 100%;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .btn {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .btn:hover {
+            background-color: #45a049;
+        }
+        .hidden {
+            display: none;
+        }
+        .test-container {
+            display: none;
+            margin-top: 20px;
+        }
+        .category {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #f0f0f0;
+            border-radius: 5px;
+            display: inline-block;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+        .category img {
+            width: 100%;
+        }
+        .category label {
+            display: block;
+            margin-top: 10px;
+        }
+        .admin-section {
+            display: none;
+            margin-top: 20px;
+        }
+        .results {
+            margin-top: 20px;
+        }
+        .result-item {
+            padding: 10px;
+            border: 1px solid #ddd;
+            margin-top: 10px;
+            border-radius: 5px;
+        }
+        .final-screen {
+            display: none;
+            padding: 20px;
+            background-color: #e7f4e7;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Benvenuti!</h1>
+    <p>Grazie per la collaborazione, i vostri dati saranno trattati nel rispetto della privacy.</p>
+
+    <!-- Sezione per l'inserimento dei dati utente -->
+    <div class="section" id="user-section">
+        <h2>Inserisci i tuoi dati</h2>
+        <input type="text" id="first-name" class="input-field" placeholder="Nome">
+        <input type="text" id="last-name" class="input-field" placeholder="Cognome">
+        <input type="text" id="phone-number" class="input-field" placeholder="Numero di telefono">
+        <button class="btn" onclick="saveUserData()">Avvia il Test</button>
+    </div>
+
+    <!-- Sezione del test IAT -->
+    <div class="test-container" id="test-section">
+        <h2>Test IAT</h2>
+        <p id="test-instruction"></p>
+
+        <!-- Categorie e immagini: Ogni categoria avrà 4 immagini -->
+        <div class="category" id="current-category">
+            <img src="https://via.placeholder.com/300x200" alt="Immagine Categoria">
+            <label id="category-label">Premi E per Affidabile o I per Inaffidabile</label>
+        </div>
+    </div>
+
+    <!-- Schermata finale -->
+    <div class="final-screen" id="final-screen">
+        <h2>Grazie per la partecipazione!</h2>
+        <p>Buona giornata!</p>
+    </div>
+
+    <!-- Sezione amministrativa protetta da password -->
+    <div class="admin-section" id="admin-section">
+        <h2>Area Riservata - Risultati</h2>
+        <div id="admin-results" class="results"></div>
+        <button class="btn" onclick="logout()">Esci</button>
+    </div>
+
+    <!-- Sezione per l'accesso amministrativo -->
+    <div class="section" id="login-section">
+        <h2>Accesso Amministratore</h2>
+        <input type="password" id="admin-password" class="input-field" placeholder="Inserisci password">
+        <button class="btn" onclick="verifyPassword()">Accedi</button>
+    </div>
+
+</div>
+
+<script>
+// Dati delle categorie (4 immagini per categoria)
+const categories = {
+    "affidabile/inaffidabile": [
+        "https://i.postimg.cc/26tTDvpd/temp-Image-VIPUe-Q.avif",
+        "https://i.postimg.cc/6Q4pc2V2/temp-Imagec6-RP3-G.avif",
+        "https://i.postimg.cc/q7Z0Pkwf/temp-Image-G6nq-Hc.avif",
+        "https://i.postimg.cc/1tGSfpPS/temp-Imagepx0k5q.avif"
+    ],
+    "sensibile/insensibile": [
+        "https://i.postimg.cc/KzCRP73H/temp-Imageg-WFWTh.avif",
+        "https://i.postimg.cc/8P2mpWyw/temp-Imagepd-HW7-X.avif",
+        "https://i.postimg.cc/GtQtZWSZ/temp-Image-Cp4e-HG.avif",
+        "https://i.postimg.cc/0Qhh9jhS/temp-Imageiozvy-S.avif"
+    ],
+    "facile/pudica": [
+        "https://i.postimg.cc/6pwq9pNF/temp-Image-RUyg-It.avif",
+        "https://i.postimg.cc/8Px92tqC/temp-Image0-A8n-QO.avif",
+        "https://i.postimg.cc/sgDm0S22/temp-Image8n-Yv2-Y.avif",
+        "https://i.postimg.cc/1X8PH4N7/temp-Image3-QGTT0.avif"
+    ]
+};
+
+let currentCategory = "affidabile/inaffidabile"; // Categoria iniziale
+let currentIndex = 0;
+let startTime = 0; // Per misurare il tempo di risposta
+let userData = {};  // Contiene i dati dell'utente (nome, cognome, telefono)
+let userResults = []; // Risultati del test
+let allResults = []; // Array per salvare i risultati di tutti gli utenti
+
+// Funzione per salvare i dati dell'utente
+function saveUserData() {
+    const firstName = document.getElementById("first-name").value;
+    const lastName = document.getElementById("last-name").value;
+    const phoneNumber = document.getElementById("phone-number").value;
+
+    if (firstName && lastName && phoneNumber) {
+        // Salva i dati dell'utente
+        userData = { firstName, lastName, phoneNumber };
+
+        document.getElementById('user-section').style.display = 'none';  // Nascondi la sezione dell'utente
+        startTest();  // Avvia il test
+    } else {
+        alert("Completa tutti i campi.");
+    }
+}
+
+// Funzione per avviare il test
+function startTest() {
+    document.getElementById('test-section').style.display = 'block';  // Mostra la sezione del test
+    showNextImage();  // Mostra la prima immagine
+    startTime = Date.now();  // Inizia a misurare il tempo
+}
+
+// Funzione per cambiare immagine
+function showNextImage() {
+    if (currentIndex < 4) {  // 4 immagini per categoria
+        const categoryImages = categories[currentCategory];
+        const imgElement = document.querySelector("#current-category img");
+        imgElement.src = categoryImages[currentIndex];
+        
+        // Resetta il timer per ogni immagine
+        startTime = Date.now();  // Reset del timer per la nuova immagine
+
+        document.getElementById("category-label").innerHTML = `Premi , per ${currentCategory === "affidabile/inaffidabile" ? "Affidabile" : currentCategory === "sensibile/insensibile" ? "Sensibile" : "Facile"} o . per la categoria opposta`;
+    } else {
+        currentIndex = 0;
+        // Cambia categoria (ciclo attraverso le categorie)
+        const categoriesList = Object.keys(categories);
+        const currentCategoryIndex = categoriesList.indexOf(currentCategory);
+        currentCategory = categoriesList[(currentCategoryIndex + 1) % categoriesList.length];
+        showNextImage();  // Mostra la prima immagine della nuova categoria
+    }
+}
+
+// Gestione dei tasti E e I
+let boh = 0; 
+document.addEventListener("keydown", function(e) {
+    if (e.key === "," || e.key === ".") {
+        // Calcola il tempo per questa immagine separatamente
+        const timeTaken = Date.now() - startTime;  // Tempo separato per ogni immagine
+        userResults.push({ category: currentCategory, choice: e.key, time: timeTaken });
+
+        currentIndex++;
+        boh++;  // Incrementa il contatore delle risposte
+        
+        // Se sono state risposte tutte le immagini (12 risposte totali), termina il test
+        if (boh >= 12) {
+            endTest();  // Chiamata alla funzione per terminare il test
+        } else {
+            showNextImage();  // Mostra l'immagine successiva
+        }
+    }
+});
+
+// Funzione per terminare il test e mostrare la schermata finale
+function endTest() {
+    // Aggiungi i risultati finali all'array globale
+    allResults.push({
+        ...userData,
+        results: userResults
+    });
+
+    document.getElementById('test-section').style.display = 'none';  // Nascondi la sezione del test
+    document.getElementById('final-screen').style.display = 'block';  // Mostra la schermata finale
+}
+
+// Funzione per visualizzare i risultati amministrativi
+function displayAdminResults() {
+    let resultsHTML = '';
+    allResults.forEach(result => {
+        resultsHTML += `
+            <div class="result-item">
+                <p><strong>Nome:</strong> ${result.firstName} ${result.lastName}</p>
+                <p><strong>Telefono:</strong> ${result.phoneNumber}</p>
+                <p><strong>Risultati:</strong></p>
+                <ul>
+                    ${result.results.map(r => `
+                        <li>
+                            Categoria: ${r.category} | Scelta: ${r.choice} | Tempo: ${r.time} ms
+                        </li>
+                    `).join('')}
+                </ul>
+            </div>
+        `;
+    });
+    document.getElementById('admin-results').innerHTML = resultsHTML;
+}
+
+// Funzione per la verifica della password
+function verifyPassword() {
+    const password = document.getElementById("admin-password").value;
+    if (password === "IAT1234") {
+        document.getElementById('login-section').style.display = 'none';  // Nascondi la sezione di login
+        document.getElementById('admin-section').style.display = 'block';  // Mostra la sezione admin
+        displayAdminResults();  // Mostra i risultati
+    } else {
+        alert("Password errata.");
+    }
+}
+
+// Funzione per uscire dall'area riservata
+function logout() {
+    document.getElementById('admin-section').style.display = 'none';  // Nascondi l'area admin
+    document.getElementById('login-section').style.display = 'block';  // Mostra la pagina di login
+}
+</script>
+
+</body>
+</html>
